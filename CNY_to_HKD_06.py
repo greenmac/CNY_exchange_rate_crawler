@@ -5,7 +5,6 @@ from influxdb import InfluxDBClient
 from urllib import request
 from urllib import parse
 
-
 # 抓取數據
 url = 'https://srh.bankofchina.com/search/whpj/search_cn.jsp'
 form_data = {}
@@ -18,10 +17,12 @@ html = request.urlopen(url, data).read().decode('utf-8')
 # 解析數據
 CNY_exchange_rate = pd.read_html(html)[1]
 CNY_exchange_rate = CNY_exchange_rate.iloc[:20, :7]
-# print(len(cny_exchange_rate))
+CNY_exchange_rate = CNY_exchange_rate.to_json(force_ascii=False)
+# CNY_exchange_rate = CNY_exchange_rate.to_json('temp.json', force_ascii=False) # 存入 temp.json
+print(CNY_exchange_rate)
 
-CNY_exchange_rate_list = []
-for i in range(len(CNY_exchange_rate)):
+# CNY_exchange_rate_list = []
+# for i in range(len(CNY_exchange_rate)):
     # 存入一般dict
     # CNY_exchange_rate_data = {}
     # CNY_exchange_rate_data['货币名称'] = CNY_exchange_rate.iloc[i][0]
@@ -38,34 +39,34 @@ for i in range(len(CNY_exchange_rate)):
     # # release_time = time.mktime(time.strptime(exchange_rate_data['发布时间'], '%Y.%m.%d %H:%M:%S'))
     
     # 存入influxdb dict
-    CNY_exchange_rate_data = [
-        {
-            'measurement': 'exchange_rate',
-            'tags': {
-                'currency': 'HKD',
-            },
-            'fields': {
-                'names': CNY_exchange_rate.iloc[i][0],
-                'buy': CNY_exchange_rate.iloc[i][1],
-                'sell': CNY_exchange_rate.iloc[i][3],
-            }
-        }
-    ]
-    # print(CNY_exchange_rate_data)
-    CNY_exchange_rate_list.append(CNY_exchange_rate_data)    
+    # CNY_exchange_rate_data = [
+    #     {
+    #         'measurement': 'exchange_rate',
+    #         'tags': {
+    #             'currency': 'HKD',
+    #         },
+    #         'fields': {
+    #             'names': CNY_exchange_rate.iloc[i][0],
+    #             'buy': CNY_exchange_rate.iloc[i][1],
+    #             'sell': CNY_exchange_rate.iloc[i][3],
+    #         }
+    #     }
+    # ]
+    # # print(CNY_exchange_rate_data)
+    # CNY_exchange_rate_list.append(CNY_exchange_rate_data)    
 # print(CNY_exchange_rate_list)
 # print(len(CNY_exchange_rate_list))
 # print(CNY_exchange_rate_data)
 # # 寫入influxdb
-client = InfluxDBClient('localhost', 8086, 'root', '', 'testdb')
-client.drop_database('testdb')
-client.create_database('testdb')
+# client = InfluxDBClient('localhost', 8086, 'root', '', 'testdb')
+# client.drop_database('testdb')
+# client.create_database('testdb')
 
-for i in range(len(CNY_exchange_rate_list)):
-    client.write_points(CNY_exchange_rate_list[i])
+# for i in range(len(CNY_exchange_rate_list)):
+#     client.write_points(CNY_exchange_rate_list[i])
 
-result = client.query('select * from exchange_rate;')
-print(list(result.get_points()))
+# result = client.query('select * from exchange_rate;')
+# print(list(result.get_points()))
 # for point in result.get_points():
 #     print('now_time:', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 #     print(point)
